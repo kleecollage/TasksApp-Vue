@@ -23,8 +23,8 @@ import { mapActions } from 'vuex';
 export default {
   data() {
     return {
-      email: 'johndoe@mail.com',
-      password: '123456'
+      email: '',
+      password: ''
     }
   },
   computed: {

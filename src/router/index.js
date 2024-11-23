@@ -37,8 +37,14 @@ const router = createRouter({
 
 router.beforeEach( (to, from, next) => {
   // console.log(to.meta.protectedRoute)
+  const isAuthenticated = store.getters.authenticated
+
+  if (isAuthenticated && (to.name === 'login' || to.name === 'register')) {
+    next('/');
+  }
+
   if (to.meta.protectedRoute) {
-    if (store.getters.authenticated) {
+    if (isAuthenticated) {
       next()
     } else {
       next('/login')

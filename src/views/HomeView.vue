@@ -32,15 +32,15 @@ export default {
   methods: {
     ...mapActions(['setTasks']),
     processForm() {
-      console.log(this.task)
+      // console.log(this.task)
       if (this.task.name.trim() == "") {
-        console.log('empty field')
+        // console.log('empty field')
         return
       }
-      console.log('data ok')
+      // console.log('data ok')
       // id gen //
       this.task.id = shortid.generate();
-      console.log(this.task.id)
+      // console.log(this.task.id)
       // send data //
       this.setTasks(this.task)
       // clean form //

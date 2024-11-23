@@ -53,20 +53,35 @@ export default createStore({
           body: JSON.stringify(task)
         })
         const dataDB = await res.json()
-        console.log(dataDB)
+        commit('set', dataDB)
       } catch (error) {
         console.log(error)
       }
-      commit('set', task)
     },
-    removeTask({ commit }, id) {
-      commit('remove', id)
+    async removeTask({ commit }, id) {
+      try {
+        await fetch(`https://tasksapp-vue3-default-rtdb.firebaseio.com/tasks/${id}.json`, {
+          method: 'DELETE',
+        })
+        commit('remove', id)
+      } catch (error) {
+        console.log(error)
+      }
     },
     getTask({ commit }, id) {
       commit('get', id)
     },
-    updateTask({ commit }, task) {
-      commit('update', task)
+    async updateTask({ commit }, task) {
+      try {
+        const res = await fetch(`https://tasksapp-vue3-default-rtdb.firebaseio.com/tasks/${task.id}.json`, {
+          method: 'PATCH',
+          body: JSON.stringify(task)
+        })
+        const dataDB = await res.json()
+        commit('update', dataDB)
+      } catch (error) {
+        console.log(error)
+      }
     },
     async uploadRealTimeDb({ commit }) {
       try {

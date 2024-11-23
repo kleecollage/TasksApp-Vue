@@ -59,7 +59,8 @@ export default createStore({
           })
         })
         const userDB = await res.json()
-        console.log(userDB)
+        router.push('/')
+        localStorage.setItem('user', JSON.stringify(userDB))
         if (userDB.error) {
           console.log(userDB.error.message)
 
@@ -87,6 +88,7 @@ export default createStore({
         }
         commit('setUser', userDB)
         router.push('/')
+        localStorage.setItem('user', JSON.stringify(userDB))
       } catch (error) {
         console.log(error)
       }
@@ -94,6 +96,7 @@ export default createStore({
     logoutUser({ commit }) {
       commit('setUser', null)
       router.push('/login')
+      localStorage.removeItem('user')
     },
     async setTasks({ commit, state }, task ) {
       try {
@@ -138,6 +141,11 @@ export default createStore({
       }
     },
     async uploadRealTimeDb({ commit, state }) {
+      if (localStorage.getItem('user')) {
+        commit('setUser', JSON.parse(localStorage.getItem('user')))
+      } else {
+        return commit('setUser', null)
+      }
       try {
         const res = await fetch(`https://tasksapp-vue3-default-rtdb.firebaseio.com/tasks/${state.user.localId}.json?auth=${state.user.idToken}`)
         const dataDb = await res.json()
@@ -147,7 +155,6 @@ export default createStore({
           // console.log(dataDb[id])
           arrayTasks.push(dataDb[id])
           commit('upload', arrayTasks)
-          console.log(arrayTasks)
         }
       } catch (error) {
         console.log(error)

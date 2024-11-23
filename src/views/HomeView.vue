@@ -30,7 +30,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['setTasks']),
+    ...mapActions(['setTasks', 'uploadRealTimeDb']),
     processForm() {
       // console.log(this.task)
       if (this.task.name.trim() == "") {
@@ -52,6 +52,9 @@ export default {
         number: 0
       }
     }
+  },
+  created(){
+    this.uploadRealTimeDb();
   }
 }
 </script>

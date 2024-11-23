@@ -11,10 +11,13 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="(task, index) in tasks" :key="task.id">
+      <tr v-if="tasks.includes('Permission denied') || tasks.length == 0">
+        <td colspan="6" class="text-center">There is nothing to show for now</td>
+      </tr>
+      <tr v-else v-for="(task, index) in tasks" :key="task.id">
         <th scope="row">{{ index + 1 }}</th>
         <td>{{ task.name }}</td>
-        <td>{{ task.category.join(' | ') }}</td>
+        <td>{{ task.category?.join(' | ') }}</td>
         <td>{{ task.state }}</td>
         <td>{{ task.number }}</td>
         <td>

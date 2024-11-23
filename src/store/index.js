@@ -10,11 +10,18 @@ export default createStore({
       category: [],
       state: '',
       number: 0
-    }
+    },
+    user: null
   },
   getters: {
+    authenticated(state) {
+      return !!state.user
+    }
   },
   mutations: {
+    setUser(state, payload) {
+      state.user = payload
+    },
     set(state, payload) {
       state.tasks.push(payload)
       // localStorage.setItem('tasks', JSON.stringify(state.tasks))
@@ -41,9 +48,56 @@ export default createStore({
     }
   },
   actions: {
-    async setTasks({ commit }, task ) {
+    async registerUser({ commit }, user ) {
       try {
-        const res = await fetch(`https://tasksapp-vue3-default-rtdb.firebaseio.com/tasks/${task.id}.json`, {
+        const res = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyDwKz07o1eojW43x31F1YkDtx89swmBlEY', {
+          method: 'POST',
+          body: JSON.stringify({
+            email: user.email,
+            password: user.password,
+            returnSecureToken: true,
+          })
+        })
+        const userDB = await res.json()
+        console.log(userDB)
+        if (userDB.error) {
+          console.log(userDB.error.message)
+
+          return
+        }
+        commit('setUser', userDB)
+      } catch (error) {
+        console.log(error)
+      }
+    },
+    async loginUser({ commit }, user) {
+      try {
+        const res = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyDwKz07o1eojW43x31F1YkDtx89swmBlEY', {
+          method: 'POST',
+          body: JSON.stringify({
+            email: user.email,
+            password: user.password,
+            returnSecureToken: true
+          })
+        })
+        const userDB = await res.json();
+        console.log(userDB)
+        if (userDB.error) {
+          return console.log(userDB.error)
+        }
+        commit('setUser', userDB)
+        router.push('/')
+      } catch (error) {
+        console.log(error)
+      }
+    },
+    logoutUser({ commit }) {
+      commit('setUser', null)
+      router.push('/login')
+    },
+    async setTasks({ commit, state }, task ) {
+      try {
+        const res = await fetch(`https://tasksapp-vue3-default-rtdb.firebaseio.com/tasks/${state.user.localId}/${task.id}.json?auth=${state.user.idToken}`, {
           // POST method generate automatic id 's
           // method: 'GET' // GET is default
           method: 'PUT',
@@ -58,9 +112,9 @@ export default createStore({
         console.log(error)
       }
     },
-    async removeTask({ commit }, id) {
+    async removeTask({ commit, state }, id) {
       try {
-        await fetch(`https://tasksapp-vue3-default-rtdb.firebaseio.com/tasks/${id}.json`, {
+        await fetch(`https://tasksapp-vue3-default-rtdb.firebaseio.com/tasks/${state.user.localId}/${id}.json?auth=${state.user.idToken}`, {
           method: 'DELETE',
         })
         commit('remove', id)
@@ -71,9 +125,9 @@ export default createStore({
     getTask({ commit }, id) {
       commit('get', id)
     },
-    async updateTask({ commit }, task) {
+    async updateTask({ commit, state }, task) {
       try {
-        const res = await fetch(`https://tasksapp-vue3-default-rtdb.firebaseio.com/tasks/${task.id}.json`, {
+        const res = await fetch(`https://tasksapp-vue3-default-rtdb.firebaseio.com/tasks/${state.user.localId}/${task.id}.json?auth=${state.user.idToken}`, {
           method: 'PATCH',
           body: JSON.stringify(task)
         })
@@ -83,9 +137,9 @@ export default createStore({
         console.log(error)
       }
     },
-    async uploadRealTimeDb({ commit }) {
+    async uploadRealTimeDb({ commit, state }) {
       try {
-        const res = await fetch('https://tasksapp-vue3-default-rtdb.firebaseio.com/tasks.json')
+        const res = await fetch(`https://tasksapp-vue3-default-rtdb.firebaseio.com/tasks/${state.user.localId}.json?auth=${state.user.idToken}`)
         const dataDb = await res.json()
         const arrayTasks = []
 
@@ -93,6 +147,7 @@ export default createStore({
           // console.log(dataDb[id])
           arrayTasks.push(dataDb[id])
           commit('upload', arrayTasks)
+          console.log(arrayTasks)
         }
       } catch (error) {
         console.log(error)

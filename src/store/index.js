@@ -11,7 +11,8 @@ export default createStore({
       state: '',
       number: 0
     },
-    user: null
+    user: null,
+    error: {type: null, message: null}
   },
   getters: {
     authenticated(state) {
@@ -45,6 +46,20 @@ export default createStore({
     },
     upload(state, payload) {
       state.tasks = payload
+    },
+    setError(state, payload) {
+      if (payload == null) {
+        return state.error= { type: null, message: null }
+      }
+      if(payload == "INVALID_LOGIN_CREDENTIALS") {
+        return state.error= { type: 'credentials', message: 'Incorrect email or password' }
+      }
+      if(payload == "EMAIL_EXISTS") {
+        return state.error= { type: 'email', message: 'This email already exists' }
+      }
+      if(payload == "INVALID_EMAIL") {
+        return state.error= { type: 'email', message: 'Incorrect email format' }
+      }
     }
   },
   actions: {
@@ -59,14 +74,14 @@ export default createStore({
           })
         })
         const userDB = await res.json()
-        router.push('/')
-        localStorage.setItem('user', JSON.stringify(userDB))
         if (userDB.error) {
           console.log(userDB.error.message)
-
-          return
+          return commit('setError', userDB.error.message)
         }
+        localStorage.setItem('user', JSON.stringify(userDB))
         commit('setUser', userDB)
+        commit('setError', null)
+        router.push('/')
       } catch (error) {
         console.log(error)
       }
@@ -82,11 +97,12 @@ export default createStore({
           })
         })
         const userDB = await res.json();
-        console.log(userDB)
         if (userDB.error) {
-          return console.log(userDB.error)
+          console.log(userDB.error);
+          return commit('setError', userDB.error.message)
         }
         commit('setUser', userDB)
+        commit('setError', null)
         router.push('/')
         localStorage.setItem('user', JSON.stringify(userDB))
       } catch (error) {
